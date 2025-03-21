@@ -1,9 +1,11 @@
+from sys import exception
+
 import bluetooth
 import time
 
 import hike
 
-WATCH_BT_MAC = 'XX:XX:XX:XX:XX:XX'
+WATCH_BT_MAC = '08:3A:F2:69:AB:CE'
 WATCH_BT_PORT = 1
 
 class HubBluetooth:
@@ -62,6 +64,10 @@ class HubBluetooth:
         Raises:
             KeyboardInterrupt: to be able to close a running application.
         """
+        if not self.connected:
+            print("Hub: Not connected to Watch!")
+            self.wait_for_connection()
+
         print("Synchronizing with watch...")
         remainder = b''
         while True:
@@ -91,6 +97,7 @@ class HubBluetooth:
                 raise KeyboardInterrupt("Shutting down the receiver.")
 
             except bluetooth.btcommon.BluetoothError as bt_err:
+                print(bt_err)
                 if bt_err.errno == 11: # connection down
                     print("Lost connection with the watch.")
                     self.connected = False
@@ -99,6 +106,9 @@ class HubBluetooth:
                 elif bt_err.errno == None: # possibly occured by socket.settimeout
                     self.sock.send('c')
                     print("Reminder has been sent to the Watch about the attempt of the synchronization.")
+
+            except Exception as e:
+                print(e)
 
     @staticmethod
     def messages_to_sessions(messages: list[bytes]) -> list[hike.HikeSession]:
