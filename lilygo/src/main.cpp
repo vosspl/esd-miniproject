@@ -1,11 +1,5 @@
 #include "config.h"
 #include "esp_mac.h"
-//#include <WiFi.h>
-//#include <HTTPClient.h>
-
-//const char* ssid = "NETGEAR28";
-//const char* password = "elegantsea867";
-//const char* serverURL = "http://192.168.1.2:5000/";
 
 // Check if Bluetooth configs are enabled
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
