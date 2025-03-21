@@ -14,8 +14,6 @@
 
 const float STEP_LENGTH = 0.75; // Average step length in meters
 float distance = 0.0;
-uint32_t sessionStartTime = 0;
-uint32_t sessionDuration = 0;
 uint32_t sessionId = 0;
 
 // Bluetooth Serial object
@@ -25,7 +23,6 @@ BluetoothSerial SerialBT;
 TTGOClass *watch;
 TFT_eSPI *tft;
 BMA *sensor;
-TinyGPSPlus *gps;
 bool irq = false;
 uint32_t steps = 0;
 
@@ -86,11 +83,6 @@ void initHikeWatch()
     watch->power->enableIRQ(AXP202_PEK_SHORTPRESS_IRQ, true);
     watch->power->clearIRQ();
 
-    // GPS Initialization
-    watch->trunOnGPS(); // Power on GPS module
-    watch->gps_begin();
-    gps = watch->gps;
-
     return;
 }
 
@@ -148,30 +140,16 @@ void saveStepsToFile(uint32_t step_count)
 
 void saveDistanceToFile(float distance)
 {
-    char buffer[10];
-    itoa(distance, buffer, 10);
+    char buffer[20];  
+    sprintf(buffer, "%.2f", distance);  
     writeFile(LITTLEFS, "/distance.txt", buffer);
 }
-
-void saveGPSToFile(double lat, double lng) {
-    char buffer[50];
-    snprintf(buffer, sizeof(buffer), "Lat: %.6f, Long: %.6f", lat, lng);
-    writeFile(LITTLEFS, "/gps.txt", buffer);
-  }
-
-  void saveSessionTimeToFile(uint32_t duration)
-  {
-      char buffer[20];
-      snprintf(buffer, sizeof(buffer), "%02d:%02d:%02d", duration / 3600, (duration % 3600) / 60, duration % 60);
-      writeFile(LITTLEFS, "/session_time.txt", buffer);
-  }
 
 void deleteSession()
 {
     deleteFile(LITTLEFS, "/id.txt");
     deleteFile(LITTLEFS, "/distance.txt");
     deleteFile(LITTLEFS, "/steps.txt");
-    deleteFile(LITTLEFS, "/gps.txt");
 }
 
 void setup()
@@ -186,7 +164,6 @@ void setup()
     sensor = watch->bma;
     
     initHikeWatch();
-    watch -> trunOnGPS();
     state = 1;
 
     SerialBT.begin("Hiking Watch");
@@ -215,13 +192,12 @@ void loop()
             /* Bluetooth sync */
             if (SerialBT.available())
             {
-                tft->printf("1");
                 char incomingChar = SerialBT.read();
                 if (incomingChar == 'c' and sessionStored and not sessionSent)
                 {
                     sendSessionBT();
                     sessionSent = true;
-                    tft->printf("2");
+                    
                 }
 
                 if (sessionSent && sessionStored) {
@@ -296,7 +272,6 @@ void loop()
         sensor->resetStepCounter();  
         steps = 0;
         distance = 0.0;
-        sessionStartTime = millis();
         // Clear screen to prevent previous data from showing
         tft->fillScreen(TFT_BLACK);
         state = 3;
@@ -311,20 +286,11 @@ void loop()
         delay(1000);
         watch->tft->fillRect(0, 0, 240, 240, TFT_BLACK);
         while (state == 3) {  // Keep updating display
-            watch->gpsHandler();  // Update GPS constantly
-
-        //Calculate elapsed session time
-        uint32_t elapsedTime = (millis() - sessionStartTime) / 1000;
-        uint8_t hours = elapsedTime / 3600;
-        uint8_t minutes = (elapsedTime % 3600) / 60;
-        uint8_t seconds = elapsedTime % 60;
 
         //Update display every loop iteration
         tft->fillRect(5, 35, 230, 25, TFT_BLACK);  // Clear session ID
         tft->fillRect(5, 65, 230, 25, TFT_BLACK);  // Clear steps
         tft->fillRect(5, 95, 230, 25, TFT_BLACK);  // Clear distance
-        tft->fillRect(5, 125, 230, 25, TFT_BLACK); // Clear GPS data
-        tft->fillRect(5, 155, 230, 25, TFT_BLACK); // Clear session time
 
         // Set font and text size
         tft->setTextFont(2);
@@ -345,19 +311,6 @@ void loop()
         tft->print("Distance: ");
         tft->print(distance, 2);
         tft->print(" km");
-
-        // Display GPS coordinates
-        tft->setCursor(5, 125);
-        tft->print("GPS: ");
-        tft->print(gps->location.lat(), 6);
-        tft->print(", ");
-        tft->print(gps->location.lng(), 6);
-
-        //Display session time
-        tft->setCursor(5, 155);
-        tft->print("Time: ");
-        tft->printf("%02d:%02d:%02d", hours, minutes, seconds);
-        
 
         //Update Step Count if Interrupt Triggered
         if (irq) {
@@ -385,9 +338,7 @@ void loop()
         saveIdToFile(sessionId);
         saveStepsToFile(steps);
         saveDistanceToFile(distance);
-        saveGPSToFile(gps->location.lat(), gps->location.lng());
         sessionStored = true;
-        //sendSessionBT();
 
         delay(1000);
         state = 1;  
