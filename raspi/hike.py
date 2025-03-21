@@ -1,5 +1,5 @@
 MET_HIKING = 6
-KCAL_PER_STEP = 0.04
+KCAL_PER_STEP = 0.005
 
 class HikeSession:
     id = 0
@@ -11,6 +11,7 @@ class HikeSession:
     # represents a computationally intensive calculation done by lazy execution.
     def calc_kcal(self):
         self.kcal = MET_HIKING * KCAL_PER_STEP * self.steps
+        self.kcal = round(self.kcal, 0)
 
     def __repr__(self):
         return f"HikeSession{{{self.id}, {self.km}(km), {self.steps}(steps), {self.kcal:.2f}(kcal)}}"

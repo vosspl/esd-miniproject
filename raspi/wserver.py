@@ -9,12 +9,11 @@ import bt
 app = Flask(__name__)
 hdb = db.HubDatabase()
 
-# Global flag to control the Bluetooth thread
 bt_thread_running = True
 
 
 def process_sessions(sessions):
-    """Callback function to process sessions.
+    """Callback function to process sessions. Use this in synchronize()!
 
     Calculates the calories for a hiking session.
     Saves the session into the database.
@@ -71,7 +70,6 @@ def bluetooth_thread():
         print("Bluetooth thread ended.")
 
 
-# Original backend routes
 @app.route('/api/')
 def get_home_api():
     sessions = hdb.get_sessions()
@@ -98,15 +96,11 @@ def delete_session_api(id):
     print(f'DELETED SESSION WITH ID: {id}')
     return Response(status=202)
 
-
-# New UI routes with improved user-friendly design
 @app.route('/')
 def home():
-    # Get sessions directly from the database
     sessions = hdb.get_sessions()
     sessions = list(map(lambda s: hike.to_list(s), sessions))
 
-    # HTML with improved card-based design
     html = """
     <!DOCTYPE html>
     <html>
@@ -411,11 +405,10 @@ def home():
             <div class="card-grid">
         """
 
-        # Add each session as a card
         for session in sessions:
             # Calculate progress percentage based on steps (10000 steps is considered a full day)
             step_percentage = min(session[2] / 10000 * 100, 100)
-            circle_color = "#3498db"  # Default blue
+            circle_color = "#3498db"
 
             # Change color based on percentage
             if step_percentage >= 100:
@@ -429,7 +422,6 @@ def home():
             else:
                 circle_color = "#e74c3c"  # Red for <25%
 
-            # Use triple quotes to avoid issues with JavaScript in f-strings
             card_html = f"""
             <div class="card">
                 <div class="card-header">
@@ -443,7 +435,7 @@ def home():
                         </div>
                         <div class="stat-box">
                             <div class="stat-value">{session[3]}</div>
-                            <div class="stat-label">Calories</div>
+                            <div class="stat-label">Calories (kcal)</div>
                         </div>
                     </div>
 
@@ -480,7 +472,6 @@ def home():
 
 @app.route('/view_session/<id>')
 def view_session(id):
-    # Get specific session details directly from database
     session = hdb.get_session(int(id))
     session_data = hike.to_list(session)
 
@@ -500,7 +491,6 @@ def view_session(id):
     else:
         circle_color = "#e74c3c"  # Red for <25%
 
-    # Use a regular string (not an f-string) for the HTML template
     html = """
     <!DOCTYPE html>
     <html>
@@ -508,89 +498,89 @@ def view_session(id):
         <title>Hike Details</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
-            * {
+            * {{
                 box-sizing: border-box;
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            }
-            body {
+            }}
+            body {{
                 margin: 0;
                 padding: 20px;
                 background-color: #f8f9fa;
                 color: #212529;
-            }
-            h1 {
+            }}
+            h1 {{
                 color: #2c3e50;
                 text-align: center;
                 margin-bottom: 30px;
-            }
-            .container {
+            }}
+            .container {{
                 max-width: 800px;
                 margin: 0 auto;
-            }
-            .detail-card {
+            }}
+            .detail-card {{
                 background: white;
                 border-radius: 12px;
                 overflow: hidden;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            }
-            .card-header {
+            }}
+            .card-header {{
                 background: linear-gradient(135deg, #3498db, #2980b9);
                 color: white;
                 padding: 20px;
                 font-size: 1.2em;
                 text-align: center;
-            }
-            .session-id {
+            }}
+            .session-id {{
                 opacity: 0.7;
                 font-size: 0.8em;
                 display: block;
                 margin-top: 5px;
-            }
-            .card-body {
+            }}
+            .card-body {{
                 padding: 30px;
-            }
-            .stat-grid {
+            }}
+            .stat-grid {{
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
                 gap: 20px;
                 margin-bottom: 30px;
-            }
-            .stat-box {
+            }}
+            .stat-box {{
                 background: #f8f9fa;
                 border-radius: 8px;
                 padding: 20px;
                 text-align: center;
-            }
-            .stat-value {
+            }}
+            .stat-value {{
                 font-size: 2.5em;
                 font-weight: bold;
                 color: #2c3e50;
                 margin: 10px 0;
-            }
-            .stat-label {
+            }}
+            .stat-label {{
                 font-size: 0.9em;
                 color: #7f8c8d;
                 text-transform: uppercase;
-            }
-            .progress-container {
+            }}
+            .progress-container {{
                 width: 200px;
                 height: 200px;
                 position: relative;
                 margin: 0 auto 30px auto;
-            }
-            .progress-circle-bg {
+            }}
+            .progress-circle-bg {{
                 width: 100%;
                 height: 100%;
                 border-radius: 50%;
                 border: 15px solid #e9ecef;
                 box-sizing: border-box;
-            }
-            .progress-circle {
+            }}
+            .progress-circle {{
                 position: absolute;
                 top: 0;
                 left: 0;
-            }
-            .progress-circle-value {
+            }}
+            .progress-circle-value {{
                 position: absolute;
                 top: 50%;
                 left: 50%;
@@ -598,16 +588,16 @@ def view_session(id):
                 font-size: 2.5em;
                 font-weight: bold;
                 color: #2c3e50;
-            }
-            .progress-label {
+            }}
+            .progress-label {{
                 display: block;
                 text-align: center;
                 margin-top: 8px;
                 font-size: 0.9em;
                 color: #7f8c8d;
                 text-transform: uppercase;
-            }
-            .back-btn {
+            }}
+            .back-btn {{
                 display: inline-block;
                 background: #3498db;
                 color: white;
@@ -617,27 +607,27 @@ def view_session(id):
                 margin-top: 20px;
                 font-weight: bold;
                 transition: background-color 0.3s;
-            }
-            .back-btn:hover {
+            }}
+            .back-btn:hover {{
                 background: #2980b9;
-            }
-            .actions {
+            }}
+            .actions {{
                 display: flex;
                 justify-content: space-between;
                 margin-top: 30px;
-            }
-            .delete-btn {
+            }}
+            .delete-btn {{
                 background: #e74c3c;
-            }
-            .delete-btn:hover {
+            }}
+            .delete-btn:hover {{
                 background: #c0392b;
-            }
+            }}
         </style>
         <script>
             // Auto refresh the page every 30 seconds to show new hikes
-            setTimeout(function() {
+            setTimeout(function() {{
                 window.location.reload();
-            }, 30000);
+            }}, 30000);
         </script>
     </head>
     <body>
@@ -697,27 +687,22 @@ def view_session(id):
 
 @app.route('/delete_session/<id>')
 def delete_session(id):
-    # Delete the session directly using the database
     hdb.delete(int(id))
     return redirect(url_for('home'))
 
 
 @app.route('/add_session', methods=['POST'])
 def add_session():
-    # Get form data
-    km = int(request.form.get('km', 0))
+    km = float(request.form.get('km', 0))
     steps = int(request.form.get('steps', 0))
     kcal = int(request.form.get('kcal', 0))
 
-    # Create a new session
     new_session = hike.HikeSession()
 
-    # Set the attributes
     new_session.km = km
     new_session.steps = steps
-    new_session.kcal = kcal  # Use the kcal value directly from the form
+    new_session.kcal = kcal
 
-    # Save the session
     hdb.save(new_session)
 
     return redirect(url_for('home'))
@@ -732,16 +717,14 @@ def bt_status():
 
 
 if __name__ == "__main__":
-    # Start the Bluetooth thread before the Flask server
+    # Start the Bluetooth thread before the Flask server for async automatic connection
     bt_thread = threading.Thread(target=bluetooth_thread)
-    bt_thread.daemon = True  # Make the thread a daemon so it exits when the main thread exits
+    bt_thread.daemon = True
     bt_thread.start()
 
     try:
         app.run('0.0.0.0', debug=True)
     finally:
-        # Signal the Bluetooth thread to stop
         bt_thread_running = False
-        # Wait for the Bluetooth thread to finish
         bt_thread.join(timeout=5)
         print("Flask server shut down. Bluetooth thread should be terminated.")
