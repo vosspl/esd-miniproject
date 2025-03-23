@@ -1,8 +1,7 @@
 # ESD: Hiking Watch
 
 ## Demo
-
-<iframe width="560" height="315" src="https://vimeo.com/1068663515/747af03068" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[Watch Demo Video on Vimeo](https://vimeo.com/1068663515/747af03068)
 
 ## Introduction
 
